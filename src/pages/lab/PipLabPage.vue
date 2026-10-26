@@ -7,7 +7,8 @@ import {CARD_HEIGHT, CARD_WIDTH, drawPoseCard} from '@/lib/poseCard';
 // 實驗頁：能不能把姿勢參考卡用子母畫面（PiP）浮在 iPhone 原生相機上？
 // 方法 1：canvas.captureStream() 即時串流 → <video> → PiP
 // 方法 2：把同一張卡用 MediaRecorder 錄成短影片 → 一般影片檔 → PiP（iOS 對一般影片的 PiP 支援通常比較穩）
-// 結果還沒經過實機驗證，頁面上會列出診斷資訊與事件紀錄，方便回報。
+// 第一輪實測（2026-10-26）：兩種方法都能進入 PiP，但一開原生相機影片就被暫停、小視窗變黑。
+// 第二輪：被暫停就自動 play()、方法 2 錄 6 秒並設封面圖、卡片右下角加跳動秒數判斷畫面是否凍結。
 
 type WebkitVideo = HTMLVideoElement & {
   webkitSupportsPresentationMode?: (mode: string) => boolean;
@@ -40,8 +41,19 @@ function draw() {
   const ctx = canvas.value?.getContext('2d');
   const pose = POSES.find((p) => p.id === poseId.value);
   if (ctx && pose) {
-    drawPoseCard(ctx, pose);
+    drawPoseCard(ctx, pose, new Date().toLocaleTimeString('zh-TW', {hour12: false}));
   }
+}
+
+// 封面圖：影片暫停或還沒解碼時，看會不會改顯示這張
+function updatePoster() {
+  if (canvas.value && video.value) {
+    video.value.poster = canvas.value.toDataURL('image/png');
+  }
+}
+
+function inPip(v: WebkitVideo) {
+  return document.pictureInPictureElement === v || v.webkitPresentationMode === 'picture-in-picture';
 }
 
 // captureStream 只在畫布有變動時才出新的畫格，定期重畫讓串流不斷
@@ -88,7 +100,7 @@ async function record() {
     recorder.onstop = () => resolve();
   });
   recorder.start();
-  await new Promise((r) => setTimeout(r, 1500));
+  await new Promise((r) => setTimeout(r, 6000));
   recorder.stop();
   await stopped;
   recording.value = false;
@@ -127,6 +139,7 @@ function enterPip() {
 
 watch(poseId, () => {
   draw();
+  updatePoster();
   if (mode.value === 'recorded') {
     note('換了姿勢：改回方法 1，要用方法 2 請重新錄影');
     void useStream();
@@ -135,6 +148,7 @@ watch(poseId, () => {
 
 onMounted(() => {
   draw();
+  updatePoster();
   redraw = setInterval(draw, 250);
   const v = video.value!;
   const c = canvas.value!;
@@ -146,7 +160,16 @@ onMounted(() => {
   v.addEventListener('enterpictureinpicture', () => note('事件：進入子母畫面'));
   v.addEventListener('leavepictureinpicture', () => note('事件：離開子母畫面'));
   v.addEventListener('webkitpresentationmodechanged', () => note(`事件：顯示模式 → ${v.webkitPresentationMode}`));
-  v.addEventListener('pause', () => note('事件：影片暫停'));
+  v.addEventListener('pause', () => {
+    note(`事件：影片暫停${inPip(v) ? '（在子母畫面中，試著繼續播放）' : ''}`);
+    if (inPip(v)) {
+      v.play().then(
+        () => note('繼續播放成功'),
+        (err: Error) => note(`繼續播放失敗：${err.name}`),
+      );
+    }
+  });
+  v.addEventListener('playing', () => note('事件：播放中'));
   document.addEventListener('visibilitychange', () => note(`事件：頁面${document.hidden ? '到背景' : '回到前景'}`));
   void useStream();
 });
@@ -196,7 +219,7 @@ const DIAG_ROWS = [
         方法 1：即時串流
       </button>
       <button type="button" class="press h-12 rounded-2xl border border-border font-semibold disabled:opacity-50" :class="{'bg-surface-strong': mode === 'recorded'}" :disabled="recording" @click="record">
-        {{ recording ? '錄影中…' : '方法 2：錄成影片' }}
+        {{ recording ? '錄影中（6 秒）' : '方法 2：錄成影片' }}
       </button>
     </div>
     <button type="button" class="press mt-2 h-13 w-full rounded-2xl bg-accent font-semibold text-on-accent" @click="enterPip">
@@ -206,11 +229,10 @@ const DIAG_ROWS = [
     <section class="card mt-5 p-5">
       <h2 class="font-bold">測試步驟</h2>
       <ol class="mt-2 list-decimal space-y-1.5 pl-5 leading-relaxed">
-        <li>按「開始浮動」，看有沒有出現浮動小視窗</li>
-        <li>回主畫面打開「相機」，看小視窗還在不在、會不會被蓋掉</li>
-        <li>回來切成「方法 2：錄成影片」，再試一次</li>
-        <li>用 Safari 和「加入主畫面」後的版本各試一次</li>
-        <li>截圖這頁下方的診斷和事件紀錄給我</li>
+        <li>方法 1：按「開始浮動」，回主畫面打開「相機」，看小視窗有沒有畫面、右下角秒數有沒有在跳</li>
+        <li>回到這頁，記下結果，再按「方法 2：錄成影片」（要等 6 秒）後重複一次</li>
+        <li>兩種方法各告訴我：有畫面在跳／有畫面但停住／全黑</li>
+        <li>截圖這頁下方的事件紀錄給我</li>
       </ol>
     </section>
 

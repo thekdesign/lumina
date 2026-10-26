@@ -40,7 +40,8 @@ export function wrapText(text: string, maxWidth: number, measure: (s: string) =>
     return lines;
 }
 
-export function drawPoseCard(ctx: CanvasRenderingContext2D, pose: Pose) {
+/** stamp：畫在右下角的小字（實驗頁用來看畫面是否還在更新） */
+export function drawPoseCard(ctx: CanvasRenderingContext2D, pose: Pose, stamp?: string) {
     ctx.fillStyle = COLORS.bg;
     ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
@@ -127,4 +128,12 @@ export function drawPoseCard(ctx: CanvasRenderingContext2D, pose: Pose) {
     ctx.fillStyle = COLORS.gold;
     ctx.font = `bold 24px ${FONT}`;
     ctx.fillText(`${CAMERA_HEIGHT_LABEL[pose.camera.height]}，${pose.camera.zoom}`, padX, CARD_HEIGHT - 36);
+
+    if (stamp) {
+        ctx.fillStyle = COLORS.muted;
+        ctx.font = `20px ${FONT}`;
+        ctx.textAlign = 'right';
+        ctx.fillText(stamp, CARD_WIDTH - padX, CARD_HEIGHT - 36);
+        ctx.textAlign = 'left';
+    }
 }
