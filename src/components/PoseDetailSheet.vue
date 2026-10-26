@@ -1,16 +1,38 @@
 <script setup lang="ts">
-import {ArrowUpDown, Lightbulb, ZoomIn} from '@lucide/vue';
+import {ArrowUpDown, Check, Heart, Lightbulb, ListPlus, ZoomIn} from '@lucide/vue';
+import {ref, watch} from 'vue';
 import BottomSheet from '@/components/BottomSheet.vue';
 import PoseFigure from '@/components/PoseFigure.vue';
+import {useShotList} from '@/composables/useShotList';
 import {CAMERA_HEIGHT_LABEL, CATEGORY_LABEL, FRAMING_LABEL, type Pose} from '@/content/poses';
 
-const props = defineProps<{pose?: Pose}>();
+// fromList：從清單頁打開時，不再顯示「加到清單」
+const props = defineProps<{pose?: Pose; fromList?: boolean}>();
 const open = defineModel<boolean>('open', {required: true});
+const {addPose, countInList, isFavorite, toggleFavorite} = useShotList();
+
+// 按下「加到清單」後，按鈕短暫變成「已加到清單」當回饋
+const justAdded = ref(false);
+let timer: ReturnType<typeof setTimeout> | undefined;
+function add() {
+  if (!props.pose) {
+    return;
+  }
+  addPose(props.pose.id);
+  justAdded.value = true;
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    justAdded.value = false;
+  }, 1600);
+}
+watch(() => props.pose, () => {
+  justAdded.value = false;
+});
 </script>
 
 <template>
   <BottomSheet v-model:open="open" :title="props.pose?.title ?? ''">
-    <div v-if="pose" class="-mt-2 max-h-[70svh] overflow-y-auto pb-1">
+    <div v-if="pose" class="-mt-2 max-h-[62svh] overflow-y-auto pb-1">
       <p class="text-sm text-muted">{{ CATEGORY_LABEL[pose.category] }}，{{ FRAMING_LABEL[pose.framing] }}</p>
 
       <div class="mx-auto mt-3 aspect-[4/5] w-52 rounded-2xl bg-bg p-3">
@@ -43,7 +65,36 @@ const open = defineModel<boolean>('open', {required: true});
         <Lightbulb :size="18" class="mt-0.5 shrink-0 text-gold-ink" aria-hidden="true" />
         {{ pose.camera.tip }}
       </p>
-      <slot name="actions" />
+    </div>
+
+    <div v-if="pose" class="mt-3 flex gap-2 border-t border-border pt-3">
+      <button
+        type="button"
+        class="press flex h-12 items-center justify-center gap-2 rounded-2xl border border-border font-semibold transition-colors"
+        :class="fromList ? 'flex-1' : 'px-4'"
+        :aria-pressed="isFavorite(pose.id)"
+        @click="toggleFavorite(pose.id)"
+      >
+        <Heart
+          :size="20"
+          class="transition-colors duration-200"
+          :class="isFavorite(pose.id) ? 'fill-gold text-gold-ink' : 'text-muted'"
+          aria-hidden="true"
+        />
+        {{ isFavorite(pose.id) ? '已收藏' : '收藏' }}
+      </button>
+      <button
+        v-if="!fromList"
+        type="button"
+        class="press flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent font-semibold text-on-accent"
+        @click="add"
+      >
+        <Check v-if="justAdded" :size="20" aria-hidden="true" />
+        <ListPlus v-else :size="20" aria-hidden="true" />
+        <span aria-live="polite">
+          {{ justAdded ? `已加到清單（第 ${countInList(pose.id)} 張）` : countInList(pose.id) ? '再加一張到清單' : '加到拍攝清單' }}
+        </span>
+      </button>
     </div>
   </BottomSheet>
 </template>
