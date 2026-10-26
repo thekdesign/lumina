@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Lumina 拾光</title>
+    <meta name="description" content="拍照前找光、選姿勢與構圖，用 iPhone 原生相機拍出好照片。" />
+    <meta name="theme-color" content="#f2f3f6" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- 防閃爍：Vue 掛載前先依 localStorage / 系統偏好套上 .dark。key 與 useColorMode 一致。 -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('vueuse-color-scheme') || 'auto';
+          var dark = s === 'dark' || (s === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute('content', dark ? '#12132a' : '#f2f3f6');
+        } catch (e) {}
+      })();
+    </script>
+    <meta name="apple-mobile-web-app-title" content="拾光" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <style>
+      html { background: #f2f3f6; }
+      html.dark { background: #12132a; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

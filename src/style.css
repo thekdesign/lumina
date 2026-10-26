@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "@fontsource/bodoni-moda/latin-500.css";
+@import "@fontsource/bodoni-moda/latin-500-italic.css";
+@import "@fontsource/bodoni-moda/latin-700.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* 中文用系統的蘋方；Bodoni Moda 只負責拉丁字與時間數字（時尚攝影雜誌的語彙），自架在 bundle 裡、離線可用 */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-display: 'Bodoni Moda', 'Didot', 'PingFang TC', serif;
+
+  /* 預設＝亮色：冷調銀鹽相紙灰白 + 藍調時刻的墨色。文字類 token 都過 WCAG AA（≥ 4.5:1）。 */
+  --color-bg: #f2f3f6;
+  --color-surface: #ffffff;
+  --color-surface-strong: #e6e8f0; /* 導覽列目前 tab、分段控制的選中底 */
+  --color-border: #e0e2ea;
+  --color-text: #1d1b33;
+  --color-muted: #5e6277;
+
+  /* 主色＝藍調時刻的靛藍 */
+  --color-accent: #3e4c9a;
+  --color-accent-ink: #3e4c9a;
+  --color-accent-soft: #e3e6f5;
+  --color-on-accent: #ffffff;
+
+  /* 黃金時刻：gold 是裝飾色（色塊、圖形），文字用 gold-ink */
+  --color-gold: #e9a23b;
+  --color-gold-ink: #8a520f;
+  --color-gold-soft: #fbecd5;
+
+  /* 一天中的光線階段（時間軸色塊，旁邊一定有文字標籤） */
+  --color-phase-night: #2a2d55;
+  --color-phase-blue: #5869c4;
+  --color-phase-golden: #e9a23b;
+  --color-phase-day: #bcd4ee;
+
+  /* 首頁天空下方的「地面」：兩個主題都是深色，倒數文字一律白字 */
+  --color-ground: #1d1b33;
+}
+
+.dark {
+  --color-bg: #12132a;
+  --color-surface: #1c1e3a;
+  --color-surface-strong: #2a2d52;
+  --color-border: #2c2f52;
+  --color-text: #ececf6;
+  --color-muted: #a3a6c4;
+
+  --color-accent: #9aa8f0;
+  --color-accent-ink: #aab6f4;
+  --color-accent-soft: #262a52;
+  --color-on-accent: #12132a;
+
+  --color-gold: #f0b25a;
+  --color-gold-ink: #f3c27d;
+  --color-gold-soft: #3a2f2a;
+
+  --color-phase-night: #0b0c1e;
+  --color-phase-blue: #5d6fd0;
+  --color-phase-golden: #f0b25a;
+  --color-phase-day: #4f6a95;
+
+  --color-ground: #0b0c1e;
+}
+
+html {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100svh;
+  overflow-x: clip;
+  background-color: var(--color-bg);
+}
+
+/* 關掉 iOS 的「點兩下放大」，保留捲動與雙指縮放 */
+html,
+button,
+[role="button"],
+a,
+input,
+select,
+textarea,
+label,
+summary {
+  touch-action: manipulation;
+}
+
+/* iOS Safari 在字級 < 16px 的輸入框 focus 時會自動放大，觸控裝置上撐到 16px */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+select,
+summary,
+label[for] {
+  cursor: pointer;
+}
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 時間數字：Bodoni 的等寬數字，倒數跳動時不會左右晃 */
+@utility numerals {
+  font-family: var(--font-display);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+@utility card {
+  border-radius: 1.25rem;
+  background-color: var(--color-surface);
+}
+
+/* 頁面切換過場（router-view，out-in） */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+.page-enter-from { opacity: 0; transform: translateY(6px); }
+.page-leave-to   { opacity: 0; transform: translateY(-4px); }
+
+/* 展開收合：grid-template-rows 0fr ↔ 1fr，內容高度不用量 */
+.collapse-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.24s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.collapse-grid[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.collapse-grid > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Bottom sheet（原生 <dialog>）：遮罩淡入、面板由下滑入 */
+dialog.sheet {
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 85svh;
+  padding: 0;
+  border: 0;
+  border-radius: 1.5rem 1.5rem 0 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+dialog.sheet[open] {
+  animation: sheet-up 0.26s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+dialog.sheet[open]::backdrop {
+  background: rgb(10 10 30 / 0.45);
+  animation: overlay-fade 0.2s ease-out;
+}
+@keyframes overlay-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* 首頁唯一的開場動作：太陽從地平線升到目前的位置 */
+@keyframes sun-rise {
+  from { translate: 0 120%; opacity: 0; }
+  to   { translate: 0 0; opacity: 1; }
+}
+.sun-rise {
+  animation: sun-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+/* 觸控按壓回饋 */
+.press {
+  transition: transform 0.15s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.press:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .press:active {
+    transform: none !important;
+  }
+  dialog.sheet[open],
+  dialog.sheet[open]::backdrop,
+  .sun-rise {
+    animation: none !important;
+  }
+  .collapse-grid {
+    transition: none !important;
+  }
+}
