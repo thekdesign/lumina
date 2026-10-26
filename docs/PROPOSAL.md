@@ -91,3 +91,21 @@
 - 姿勢／構圖 App：PoseCam、PoStyle、PoseSnap、GiFit、姿勢照相機、ZopeZope 男友相機、SOVS、Superpose
 - 找光：SunIZup、Golden Hour Compass、SunPath、Golden Horizon
 - 技術限制：Apple Developer Forums thread 801146（iOS 26 主畫面相機旋轉）、WebKit bug 185448、Dynamsoft 網頁相機 zoom 說明
+
+## 7. 實驗紀錄
+
+### 子母畫面浮在原生相機上（2026-10-26，失敗）
+
+想法：iOS 不允許在原生相機上疊圖，改用子母畫面（PiP）把姿勢參考卡浮在相機上方。
+
+- 方法 1：`canvas.captureStream()` 即時串流 → `<video>` → `requestPictureInPicture()`
+- 方法 2：用 `MediaRecorder` 把參考卡錄成 mp4（Safari 支援 `video/mp4`）→ 一般影片 → PiP
+- 實測（iPhone、Safari）：兩種方法都能進入 PiP；一打開原生相機，影片就被暫停。程式自動 `play()` 續播，iOS 也回報成功，但小視窗**全黑**。
+- 結論：網頁的 PiP 內容在原生相機開著時不會顯示，A 方案放棄，改做 ③ 對位取景器（網頁相機 + 疊圖）。
+
+### ③ 對位取景器（2026-10-26 上線，待實機回報）
+
+- 入口：姿勢詳情「疊在相機畫面上對位」（帶 `?pose=`）、教練頁卡片；路由 `/viewfinder`，全螢幕。
+- 3:4 取景框（同原生相機直式照片）、疊姿勢人形或自己的參考照（透明度可調）、三分／對角／十字格線、水平儀（DeviceMotion，iOS 需點擊授權）、前後鏡頭切換。
+- 快門從影片裁出取景框那一塊存成 JPEG，用分享表單「儲存影像」存進照片。
+- 已知風險：iOS 26 從主畫面開啟時相機畫面可能轉 90°（Apple Developer Forums thread 801146），待實機確認。

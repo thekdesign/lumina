@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ArrowUpDown, Check, Heart, Lightbulb, ListPlus, ZoomIn} from '@lucide/vue';
+import {ArrowUpDown, Check, ChevronRight, Heart, Lightbulb, ListPlus, ScanLine, ZoomIn} from '@lucide/vue';
 import {ref, watch} from 'vue';
 import BottomSheet from '@/components/BottomSheet.vue';
 import PoseFigure from '@/components/PoseFigure.vue';
@@ -65,6 +65,14 @@ watch(() => props.pose, () => {
         <Lightbulb :size="18" class="mt-0.5 shrink-0 text-gold-ink" aria-hidden="true" />
         {{ pose.camera.tip }}
       </p>
+      <router-link
+        :to="{name: 'viewfinder', query: {pose: pose.id}}"
+        class="press mt-2 flex items-center gap-3 rounded-xl border border-border px-3.5 py-3"
+      >
+        <ScanLine :size="18" class="shrink-0 text-accent-ink" aria-hidden="true" />
+        <span class="flex-1">疊在相機畫面上對位</span>
+        <ChevronRight :size="18" class="text-muted" aria-hidden="true" />
+      </router-link>
     </div>
 
     <div v-if="pose" class="mt-3 flex gap-2 border-t border-border pt-3">

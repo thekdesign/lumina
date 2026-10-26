@@ -17,8 +17,8 @@ export const router = createRouter({
                 {path: 'coach', name: 'coach', component: () => import('@/pages/CoachPage.vue')},
             ],
         },
-        // 實驗頁：不放進底部導覽，直接用網址開
-        {path: '/lab/pip', name: 'lab-pip', component: () => import('@/pages/lab/PipLabPage.vue')},
+        // 對位取景器：全螢幕，不放在底部導覽的外殼裡
+        {path: '/viewfinder', name: 'viewfinder', component: () => import('@/pages/ViewfinderPage.vue')},
         {path: '/:pathMatch(.*)*', redirect: '/'},
     ],
     scrollBehavior: () => ({top: 0}),

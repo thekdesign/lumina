@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Check, ChevronRight} from '@lucide/vue';
+import {Check, ChevronRight, ScanLine} from '@lucide/vue';
 import {useLocalStorage} from '@vueuse/core';
 import {computed} from 'vue';
 import Disclosure from '@/components/Disclosure.vue';
@@ -112,8 +112,13 @@ const THEME_OPTIONS = [
       </div>
     </section>
 
-    <router-link :to="{name: 'lab-pip'}" class="block py-2 text-center text-sm text-accent-ink">
-      實驗功能：把姿勢卡浮在原生相機上
+    <router-link :to="{name: 'viewfinder'}" class="press card flex items-center gap-3 p-5">
+      <ScanLine :size="22" class="shrink-0 text-accent-ink" aria-hidden="true" />
+      <span class="min-w-0 flex-1">
+        <span class="block font-semibold">對位取景器</span>
+        <span class="block text-sm text-muted">在相機畫面上疊姿勢、參考照片和格線，對好位置再拍</span>
+      </span>
+      <ChevronRight :size="20" class="shrink-0 text-muted" aria-hidden="true" />
     </router-link>
   </main>
 </template>
