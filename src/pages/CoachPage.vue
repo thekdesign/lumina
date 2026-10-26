@@ -111,5 +111,9 @@ const THEME_OPTIONS = [
         </button>
       </div>
     </section>
+
+    <router-link :to="{name: 'lab-pip'}" class="block py-2 text-center text-sm text-accent-ink">
+      實驗功能：把姿勢卡浮在原生相機上
+    </router-link>
   </main>
 </template>
