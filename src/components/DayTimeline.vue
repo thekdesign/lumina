@@ -25,7 +25,9 @@ const segments = computed(() => daySegments(dayStart.value, props.place.lat, pro
 const windows = computed(() => lightWindows(dayStart.value, props.place.lat, props.place.lng).map((w) => ({
   key: `${w.period}-${w.kind}`,
   kind: w.kind,
-  label: `${PERIOD_LABEL[w.period]}${PHASE_LABEL[w.kind]}`,
+  // 列表用短名（清晨藍調），小螢幕才不會折行；完整名稱給螢幕閱讀器
+  label: `${PERIOD_LABEL[w.period]}${PHASE_LABEL[w.kind].slice(0, 2)}`,
+  fullLabel: `${PERIOD_LABEL[w.period]}${PHASE_LABEL[w.kind]}`,
   range: `${formatClock(w.start, props.place.timeZone)} – ${formatClock(w.end, props.place.timeZone)}`,
   duration: formatDuration(w.end.getTime() - w.start.getTime()),
   past: w.end <= props.now,
@@ -89,16 +91,16 @@ const LEGEND: LightPhase[] = ['night', 'blue', 'golden', 'day'];
       <li
         v-for="w in windows"
         :key="w.key"
-        class="flex items-center gap-3 py-3 transition-opacity"
+        class="flex items-center gap-2.5 py-3 transition-opacity min-[360px]:gap-3"
         :class="{'opacity-45': w.past}"
       >
         <span class="size-2.5 shrink-0 rounded-full" :class="PHASE_COLOR[w.kind]" aria-hidden="true" />
-        <span class="flex-1" :class="{'font-semibold': w.active}">
-          {{ w.label }}<span v-if="w.past" class="sr-only">（已過）</span>
+        <span class="flex-1 whitespace-nowrap" :class="{'font-semibold': w.active}">
+          <span aria-hidden="true">{{ w.label }}</span><span class="sr-only">{{ w.fullLabel }}</span><span v-if="w.past" class="sr-only">（已過）</span>
         </span>
-        <span class="numerals text-[17px]">{{ w.range }}</span>
-        <span v-if="w.active" class="w-14 rounded-full bg-gold-soft py-0.5 text-center text-xs font-semibold text-gold-ink">進行中</span>
-        <span v-else class="w-14 text-right text-sm text-muted">{{ w.duration }}</span>
+        <span class="numerals text-base whitespace-nowrap min-[360px]:text-[17px]">{{ w.range }}</span>
+        <span v-if="w.active" class="min-w-12 shrink-0 rounded-full bg-gold-soft px-2 py-0.5 text-center text-xs font-semibold whitespace-nowrap text-gold-ink">進行中</span>
+        <span v-else class="min-w-12 shrink-0 text-right text-sm whitespace-nowrap text-muted">{{ w.duration }}</span>
       </li>
     </ul>
     <p v-else class="mt-4 text-sm text-muted">這一天沒有藍調和黃金時刻。</p>
